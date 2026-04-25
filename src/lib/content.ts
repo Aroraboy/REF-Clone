@@ -86,15 +86,11 @@ export async function getEvents(): Promise<EventDoc[]> {
 }
 
 export async function getUpcomingEvent(): Promise<EventDoc | null> {
-  const snap = await getAdminDb()
-    .collection("events")
-    .where("status", "==", "upcoming")
-    .orderBy("startsAt", "asc")
-    .limit(1)
-    .get();
-  if (snap.empty) return null;
   const events = await getEvents();
-  return events.find((e) => e.id === snap.docs[0].id) ?? null;
+  const upcoming = events
+    .filter((e) => e.status === "upcoming")
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  return upcoming[0] ?? null;
 }
 
 export async function getEventBySlug(slug: string): Promise<EventDoc | null> {
