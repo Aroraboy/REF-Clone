@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Public-readable content collections
+    match /events/{doc}       { allow read: if true; allow write: if false; }
+    match /blog/{doc}         { allow read: if true; allow write: if false; }
+    match /caseStudies/{doc}  { allow read: if true; allow write: if false; }
+    match /testimonials/{doc} { allow read: if true; allow write: if false; }
+    match /faqs/{doc}         { allow read: if true; allow write: if false; }
+
+    // Contact form submissions — create-only from the public
+    match /contactMessages/{doc} {
+      allow create: if
+        request.resource.data.keys().hasOnly(['name','email','phone','message','createdAt']) &&
+        request.resource.data.name is string &&
+        request.resource.data.email is string &&
+        request.resource.data.message is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$') &&
+        request.resource.data.message.size() <= 5000;
+      allow read, update, delete: if false;
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}
